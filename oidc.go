@@ -28,6 +28,9 @@ const (
 	//
 	// See: https://openid.net/specs/openid-connect-core-1_0.html#OfflineAccess
 	ScopeOfflineAccess = "offline_access"
+
+	pIssuerAzureGraphExpected = "https://login.microsoftonline.com/common/"
+	pIssuerAzureGraphGot = "https://sts.windows.net/{tenantid}/"
 )
 
 // ClientContext returns a new Context that carries the provided HTTP client.
@@ -106,7 +109,10 @@ func NewProvider(ctx context.Context, issuer string) (*Provider, error) {
 		return nil, fmt.Errorf("oidc: failed to decode provider discovery object: %v", err)
 	}
 	if p.Issuer != issuer {
+		// Check for Azure Graph API
+		if !(issuer == pIssuerAzureGraphExpected && p.Issuer == pIssuerAzureGraphGot) {
 		return nil, fmt.Errorf("oidc: issuer did not match the issuer returned by provider, expected %q got %q", issuer, p.Issuer)
+		}
 	}
 	return &Provider{
 		issuer:       p.Issuer,

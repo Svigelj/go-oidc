@@ -17,6 +17,9 @@ import (
 const (
 	issuerGoogleAccounts         = "https://accounts.google.com"
 	issuerGoogleAccountsNoScheme = "accounts.google.com"
+
+	vIssuerAzureGraphExpected = "https://sts.windows.net/{tenantid}/"
+	vIssuerAzureGraphGotPrefix = "https://sts.windows.net/"
 )
 
 // IDTokenVerifier provides verification for ID Tokens.
@@ -151,7 +154,9 @@ func (v *IDTokenVerifier) Verify(ctx context.Context, rawIDToken string) (*IDTok
 		// for Google.
 		//
 		// We will not add hooks to let other providers go off spec like this.
-		if !(v.issuer == issuerGoogleAccounts && t.Issuer == issuerGoogleAccountsNoScheme) {
+		if !(v.issuer == issuerGoogleAccounts && t.Issuer == issuerGoogleAccountsNoScheme) &&
+		// Added one for Azure Graph API
+		   !(v.issuer == vIssuerAzureGraphExpected && strings.Contains(t.Issuer, vIssuerAzureGraphGotPrefix)) {
 			return nil, fmt.Errorf("oidc: id token issued by a different provider, expected %q got %q", v.issuer, t.Issuer)
 		}
 	}
